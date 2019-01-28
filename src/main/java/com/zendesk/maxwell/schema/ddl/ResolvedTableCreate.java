@@ -1,0 +1,45 @@
+package com.zendesk.maxwell.schema.ddl;
+
+import com.zendesk.maxwell.replication.Replicator;
+import com.zendesk.maxwell.schema.Database;
+import com.zendesk.maxwell.schema.Schema;
+import com.zendesk.maxwell.schema.Table;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class ResolvedTableCreate extends ResolvedSchemaChange {
+	static final Logger LOGGER = LoggerFactory.getLogger(ResolvedTableCreate.class);
+	public String database;
+	public String table;
+	public Table def;
+
+
+	public ResolvedTableCreate() {}
+	public ResolvedTableCreate(Table t) {
+		this.database = t.database;
+		this.table = t.name;
+		this.def = t;
+	}
+
+	@Override
+	public void apply(Schema schema) throws InvalidSchemaError {
+//		LOGGER.info("ResolvedTableCreate-->apply schema.getDatabaseNames:{},database:{},table:{}",schema.getDatabaseNames(),this.database,this.table);
+		Database d = schema.findDatabaseOrThrow(this.database);
+
+		if ( d.hasTable(this.table) )
+			return;
+//			throw new InvalidSchemaError("Unexpectedly asked to create existing table " + this.table);
+
+		d.addTable(this.def);
+	}
+
+	@Override
+	public String databaseName() {
+		return database;
+	}
+
+	@Override
+	public String tableName() {
+		return table;
+	}
+}
